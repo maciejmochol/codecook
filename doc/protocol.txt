@@ -1,0 +1,184 @@
+Projekt protokolu CODECOOK
+--------------------------
+
+1) Wprowadzenie
+
+System codecook jest wielowatkowa aplikacja, ktora zarzadza probkami
+pobieranymi ze sterownikow PLC, zapisuje je do bazy, i udostepnia
+poprzez protokol komunikacyjny (TCP/IP lub inny). System codecook jest 
+w pelni konfigurowalny zdalnie.
+
+2) Analiza funkcjonalna
+
+Uslugi systemu codecook mozna podzielic na nastepujace grupy:
+
+a) Konfiguracja
+	- wyswietlanie, dodawanie i usuwanie listy uruchamianych sterownikow
+	- wyswietlanie, dodawanie i usuwanie tras routingu
+	- restart systemu
+
+b) Autoryzacja
+	- logowanie sie do systemu, ustawienie aktywnego operatora
+
+c) Wyswietlanie parametrow
+	- wyswietlanie listy wszystkich parametrow
+	- wyswietlanie listy kanalow jakie posiada sciezka
+	- dodawanie do listy retrieve
+	- kasowanie listy retrieve
+	- sciaganie typow parametrow w/g listy retrieve
+	- sciaganie wartosci parametrow w/g listy retrieve
+
+d) Grupowanie parametrow w drzewo funkcjonalne
+	(kazde drzewo jest odrebne dla usera. Jedno drzewo - drzewo
+	 administratora - jest widoczne dla wszystkich. Poruszanie sie po
+	 drzewie podobne jest do systemu plikow. Implementacja tego drzewa
+	 funkcjonalnego potrzebna jest w nowym SzarpDraw - zamiast definiowania okien)
+
+	- listowanie biezacej galezi
+	- dodawanie galezi w biezacej galezi (mkdir)
+	- usuwanie galezi w biezacej galezi (rmdir)
+	- zmiana biezacej galezi (cd)
+	- dodanie sciezki parametru do biezacej galezi
+
+e) Grupowanie parametrow w raporty (dla programu Raporter)
+	- lista raportow, dodawanie i usuwanie raportow
+	- zmiana biezacego raportu
+	- lista, dodawanie i usuwanie sciezek z biezacego raportu
+
+f) Definicje alarmow (projekt by Vooyeck)
+
+g) Uslugi usredniania (parametry pochodne)
+	(usluga polega na tym, ze system domyslnie dodaje do wszystkich
+	parametrow z kanalu VALUE(PROBE) kanaly srednich. Parametr pochodny 
+	ma te
+	sama sciezke, ale nazwe kanalu inna w zaleznosci od definicji. Prawo
+	do zmiany konfiguracji uslugi usredniania ma tylko administrator).
+	- lista, dodawanie i usuwanie kanalow srednich
+	- zmiana parametrow sredniej (czas odswiezania)
+
+h) Baza danych (w przygotowaniu)
+
+3) Propozycja skladni protokolu
+
+a) Konfiguracja
+
+0. dodawanie, usuwanie aliasoow (Vooyeck - propozycja)
+
+ALIAS ADD <new_path> <path>
+ALIAS DEL <path>
+
+1. wyswietlanie, dodawanie i usuwanie listy uruchamianych sterownikow
+
+DEVICE LIST - zwraca liste nazw sterownikow
+DEVICE ADD <name> - dodaje sterownik do listy
+DEVICE REMOVE <name> - usuwa sterownik z listy
+
+2. wyswietlanie, dodawanie i usuwanie tras routingu
+
+w przygotowaniu.
+
+3. restart systemu
+
+RESET
+
+b) Autoryzacja
+	- logowanie sie do systemu, ustawienie aktywnego operatora
+
+USER LOGIN <user> <pass>
+USER ADD <user>
+USER REMOVE <user>
+USER SETPASS <user> <pass>
+
+
+c) Wyswietlanie parametrow
+
+1. wyswietlanie wszystkich parametrow
+
+PARAMS LIST
+
+2. wyswietlanie wszystkich kanalow jakie posiada sciezka
+
+PARAMS SHOWCHANNELS <path>
+
+3. dodawanie do listy retrieve
+
+RETRIEVE ADD <name>
+
+4. kasowanie listy retrieve
+
+RETRIEVE RESET
+
+5. sciaganie typow parametrow w/g listy retrieve
+
+RETRIEVE GETTYPES
+
+6. sciaganie wartosci parametrow w/g listy retrieve
+
+RETRIEVE GET
+
+d) Grupowanie parametrow w drzewo funkcjonalne
+	(kazde drzewo jest odrebne dla usera. Jedno drzewo - drzewo
+	 administratora - jest widoczne dla wszystkich. Poruszanie sie po
+	 drzewie podobne jest do systemu plikow. Implementacja tego drzewa
+	 funkcjonalnego potrzebna jest w nowym SzarpDraw - zamiast definiowania okien)
+
+1. listowanie biezacej galezi
+
+TREE SHOW
+
+2. dodawanie galezi w biezacej galezi (mkdir)
+
+TREE ADD <name>
+
+3. usuwanie galezi w biezacej galezi (rmdir)
+
+TREE REMOVE <name>
+
+4. zmiana biezacej galezi (cd)
+
+TREE CD <name || ..>
+
+5. dodanie sciezki parametru do biezacej galezi
+
+TREE ADDPARAM <name>
+
+
+e) Grupowanie parametrow w raporty (dla programu Raporter)
+
+1. lista raportow, dodawanie i usuwanie raportow
+
+RAPORT LIST
+RAPORT ADD <name>
+RAPORT REMOVE <name>
+
+2. zmiana biezacego raportu
+
+RAPORT CURRENT <name>
+
+3. lista, dodawanie i usuwanie sciezek z biezacego raportu
+
+RAPORT LISTPARAM
+RAPORT ADDPARAM
+RAPORT REMOVEPARAM
+
+
+f) Definicje alarmow (projekt by Vooyeck)
+
+g) Uslugi usredniania (parametry pochodne)
+	(usluga polega na tym, ze system domyslnie dodaje do wszystkich
+	parametrow z kanalu VALUE(PROBE) kanaly srednich. Parametr pochodny ma te
+	sama sciezke, ale nazwe kanalu inna w zaleznosci od definicji. Prawo
+	do zmiany konfiguracji uslugi usredniania ma tylko administrator).
+
+1. lista, dodawanie i usuwanie kanalow srednich
+
+AVG LIST
+AVG ADD <channel_name> <time>
+AVG REMOVE <channel_name>
+AVG SHOW <channel_name>
+
+2. zmiana parametrow sredniej (czas odswiezania)
+
+AVG SETTIME <channel_name> <time>
+
+h) Baza danych (w przygotowaniu)

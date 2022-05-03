@@ -1,0 +1,69 @@
+						
+							Vooyeck 2000-04 
+
+Odkrylem, ze najdluzej debugguje sie bledy charakterystyczne dla C++.
+(Przyklady z kodu codecooka)
+
+-------------------------------------------------------------------
+
+1. Wartosc domyslna 
+
+class CD_Node{	 // ...
+	virtual ShowChannels(bool CalledFromAlias = false); 
+		// ...
+};
+
+class CD_Node_Alias : public CD_Node{	// ...
+	virtual ShowChannels(bool CalledFromAlias = false); 
+					// ...
+};						
+
+- A co by sie stalo gdyby bylo: CD_Node_Alias:: ShowChannels(
+		bool CalledFromAlias = true ) ?
+- Zupelnie nic. Wartoscia domyslna pozostanie false.
+
+
+--------------------------------------------------------------------
+
+2. Wieloparametrowe
+
+class Logger{
+	Log(char *, va_list);
+	Log(char *, ...);
+};
+
+- Ktoora metoda zostanie wywolana w tym przypadku: 
+	<LoggerObj>.Log("Jestem : %s", "Koderem");
+- Niestety ta pierwsza.
+
+-------------------------------------------------------------------
+
+3. string
+
+	string s = "cipka";
+	char *c = s.data();
+
+- Czy wartosc strcmp(c, "cipka") jest zawsze zerowa?
+- Nie, c moze wskazywac na napis "cipka", ale moze rowniez na napis
+  "cipkawalek poprzedniego napisu". NIGDY nie nalezy stosowac czegos
+  takiego : return strdup(<stringObj>.data());!
+  Zamiast tego mamy funkcje  char *copy_string(string); 
+  
+-------------------------------------------------------------------
+
+4. Konstruktory kopiujace - nalezy je pisac!
+
+class CD_Address {
+void *jakis_pointer;
+public:
+	CD_Address(string);
+	CD_Address(char*);
+	~CD_Address() { delete jakis_pointer; }
+};
+
+- Po czyms takim: CD_Address cdaddrObj(<CD_AddressObj>) mozemy rzucac
+  moneta - ktory z obiektoow wywali core'a.
+
+--------------------------------------------------------------------
+
+

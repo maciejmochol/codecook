@@ -1,0 +1,162 @@
+
+					(last edition by Vooyeck 2000-04)
+
+
+
+  TODO: 
+========
+
+* Dokumentacja do API i zastosowanych rozwiazan. W tym momencie trudno 
+  byloby komukolwiek wlaczyc sie do projektu. Z docoow dla developeroow
+  sa ze dwa pliki, z czego jeden (juz nieaktualny) in English.
+
+* XML protocol. Najlepiej wykorzystac istniejace rozwiazania (biblioteki),
+  moglibysmy przesylac nawet bardzo zlozone struktury. Po stronie 
+  codecooka :  Gnome'owy 'libxml', natomiast pod klientoow
+  znalazlem dwie biblioteki TCL-owe: pierwsza to 'TclXML' w czystym TCL-u, 
+  ale wymaga TCL 8.1, natomiast ta druga, 'TclExpat', zadowoli sie 8.0x,
+  ale korzysta z modooloow w C, wiec rozwiazanie mniej przenosne. 
+
+* Odchamic protokool dynamiczny - to 'command not supported', itd.. 
+
+* Dodac kontekst uzytkownika. W tym momencie nie jest to takie banalne.
+  Kontekst powinien byc zwiazany z terminalem, natomiast terminal uru-
+  chamia parsowanie, ktore z kolei funkcje, itd..   
+  Chyba bedzie to zwiazane z protokolem dynamicznym.
+
+* Baza danych. To najtrudniejsza czesc systemu, mysle ze trudniejsza
+  o wiele od tego co dotychczas zrobilismy. Proponuje juz sie nad nia
+  zastanawiac, ja mam wlasne wizje, ale wszystkiego nie ogarniam jeszcze.
+  Jarek - pamietasz, rozmawialismy o tym.
+
+* Dodac do protoko³u komendê USE:
+   USE <cdtree_node> <COMMAND> ... params ...
+  Np. USE public:raports:Temperatury SHOW VALUE
+  (w ten sposób np. wy¶wietla Raport wszystkie warto¶ci próbek z raportu)
+  USE wywo³uje wirtualn± metodê Use() z pochodnych CD_Node()
+
+* Dodac do Device_Param_Table obs³ugê AVG
+
+* Dodaæ do drzewa nowe wêz³y typu AVG. Dodaæ klasy u¶redniania do ptable.*
+  Dodaæ metodê Inform() w CD_Node() s³u¿±c± do informowania wêz³a o jakiej¶
+  zmianie poddrzewa.
+  Uslugi usredniania (w/g idei wujka)
+
+* Dodaæ komendê SET:
+  SET <cdtree_channel> <value> ,np.:
+  SET public:raports:Temperatury,Title "Temperatury z ciep³owni"
+   Implementacja analogiczna do komendy USE
+
+* Dodac zapisywanie drzewa na dysk.
+
+* Logi. Zunifikowac logi, inny mechanizm: proponuje plik (pliki) i 
+  jakis standard zapisu logow: np. kilka metod:
+  Log, Error, FatalError, InternalError etc.
+  chodzi o to aby moznabylo przegladac pozniej te logi i badac przce systemu,
+  oczywiscie wszystko automatycznie, zdalnie, wygodnie...
+  Niech bedzie globalnie dostepna funkcja log!!! 
+
+  Kazde odwolanie do loggera oprocz tego ze zawiera komunikat zawiera rowniez 
+  jakis string identyfikujacy (tak jak syslog). Poza tym do kazdego komunikatu 
+  logger przyczepia timestampa.  Format zapisu bylby bardzo podobny do tego 
+  co napisal vooyeck w serverze alarmow, czyli bylby oddzielny plik 
+  indeksujacy normalny plik tekstowy.
+
+  Vooyeck: nie udalo by sie przerobic tego kodu z servera alarmow ? Al_log
+  przerzucic do loggera ? Wtedy byloby to uniwersalne.
+  Anybody wants it ?
+
+* Napisac HOWTO-write-a-plugin.
+
+* Dodaæ wêz³y typu static (zapisywalne do pliku) - np. aliasy, alarmy
+  Dodaæ wêz³y typu CONTAINER (static) - s³u¿±ce do przechowywania danych
+
+* Zaimplementowaæ klasy do obs³ugi bazy (w/g database.txt)
+
+* Alarmy - zrobienie jakiegos odswiezania - synchronizacji obliczania wartosci
+  alarmow (ten sposob co jest teraz nie jest dobry - to powinno sie
+  samo odswiezac).
+
+* Sterownik do wiatromierza
+
+* Asynchroniczny protokol codecook - ten co jest teraz jest synchroniczny.
+  User cos chce, protokol cos odpowiada. Potrzebne jest cos asynchronicznego,
+  teraz widze to w ten sposob ze jest dostepna usluga - open channel czy cos
+  takiego - ktora - tak jak ftp - otwiera polaczenie na drugim porcie.
+  Zadaniem klienta jest sprawdzac czy czegos tam aby nie ma.
+  Ma to zastosowanie np. w powiadamianiu usera o awariach - kontroler, albo
+  o informowaniu ze skonczyla sie analiza, albo cos takiego.
+
+* ladny i wygodny interface w TCL do laczenia sie z codecookiem i 
+  sterowania nim, przegladania logow, ... (wlasnie)
+
+* wielka przyszlosc: !html interface! kilka skryptow cgi, i strona z 
+  ramkami np. szarp.html
+
+
+
+
+ IDEAS / CHECK IT
+==================
+
+* Co sie stanie je¿eli terminal wykonuje jakies dlugotrwale operacje,
+  a w trakcie tego padnie po³±czenie ? Jak post±pi NetManager, skilluje ?
+  Sprawdziæ i ew. ustawiæ asynchroniczne zamykanie terminali.
+
+* device_list: sprawdz wszystkie destruktory w device i pluginach, test metod! 
+
+* dolozyc requesty dla pluginow - Chyba niepotrzebne... no bo co za requesty ?  
+
+* Broadcast - klasa ktora rozpowszechnia requesty. Chetni do czytania
+  zapisuj± siê do niej. Do cstable-> dodac Synchronize_Broadcast
+  Na razie chyba niepotrzebne...
+
+* code: Proponuje umieszczac wszystkie klasy pochodne od Execute_Command 
+  nie w protocol.[cc|h] tylko plikach zwiazanych merytorycznie z akuratna
+  wlasciwoscia (np. komendy USER). Co bedzie latwe to sam zmienie.
+
+  Analogicznie dodawanie do protokolu nowych komend. Najlepiej zeby to bylo
+  wtedy, gdy konstruuje sie cstable, czyli np. w konstruktorze listy alarmow.
+
+
+
+
+ DONE: 
+======
+
+* Sygnaly, asynchroniczna komunikacja, odpornosc na SEGFAULT, wywalanie
+  pluginow ktore daly pupy, restartowanie watkow ktore daly pupy.
+- Nie jest to rozwiazanie idealne, jest nieodporne na bledy ani na
+  wyjatki (throw, catch)
+
+* Zaimplementowaæ jaki¶ sposób na obs³ugê dynamicznych kana³ów (to chyba
+  ³atwe). Np. bazê danych bêdzie siê odczytywa³o poprzez wêz³y typu PARAM.
+  Kana³ bazy bêdzie mia³ np. postaæ: 
+  DB(12011999)
+
+  Kana³ ¶rednich bêdzie definiowany w wê¼le typu AVG.
+  Kana³ ¶rednich bazy:
+
+  AVG(<definicja ¶redniej>,<data w/g formu³y>)
+- DONE - 06.12.1999 code
+
+* Dobrze byloby aby mozna bylo dodawac i usuwac rodzaje requestow 
+  dynamicznie razem z pluginami.
+- DONE - code 6.12.1999
+
+* Poprawic - zmienic listy!W liscie trzymamy teraz wskazniki na obiekty.
+  mozna je latwo wkladac, ale co sie stanie jesli chcemy wlozyc do 
+  listy obiekt/wskaznik, a potem go wyjac i dalej uzywac: teraz jest to 
+  niemozliwe!!! bo wyjmujac kasujemy obiekt!!!
+- DONE 
+
+* Klasa terminal wczytujaca skrypt. 
+  Chodzi o to, zeby na starcie codecooka jakis kod bral plik zawierajacy 
+  komendy protokolu i go wykonywal.
+- DONE
+
+* Obsluga bledoow : zunifikowac wszystkie wartosci zwracane przez metody:
+  wszedzie gdzie sie da powstawiac throw'y, try'e i catch'e - code
+  teraz wszystko na exceptions, ccerror.h
+  moze: 0 - blad!  1 - ok! ( powinno byc odwrotnie - vooyeck )
+- DONE ?

@@ -1,0 +1,164 @@
+device_conf_not_pnp.txt
+=======================
+
+Plik konfiguracyjny sterowników PLC w systemie Codecook - bez obs³ugi PnP
+-------------------------------------------------------------------------
+
+Zadaniem ka¿dego sterownika PLC systemu "codecook" jest dostarczenie jakiego¶
+drzewa parametrów wraz z odpowiadaj±cymi mu kana³ami opisuj±cymi zmienne i
+sta³e parametru. W systemie bêd± standardowe nazwy kana³ów i mo¿liwo¶ci definiowania 
+nowych (np. niestandardowych ¶rednich). W chwili obecnej nie jest znana dok³adna 
+specyfikacja definicji nowych kana³ów. Na pewno sterownik bêdzie mia³ mo¿liwo¶æ 
+utworzenia w³asnego kana³u dla parametru, np. w celach informacyjnych. 
+Kana³y w parametrach mog± byæ zmienne lub sta³e. Zmienne - czyli np. warto¶æ
+bie¿±ca danego parametru - definiowane s± przez kod sterownika. Natomiast
+kana³y sta³e, jak np. nazwa jednostki wielko¶ci fizycznej któr± opisuje
+parametr - bêd± konfigurowane przez plik konfiguracyjny.
+	Dla wszystkich parametrów zdefiniowanych w jednym pliku bêd± dostêpne te same 
+kana³y. Zatem plik konfiguracyjny sk³ada siê z definicji kana³ów i definicji parametrów.
+
+Definicja ma sk³adniê:
+
+<warto¶æ>{,<warto¶æ>}+
+
+Czyli np.
+
+ala,ela
+ula,ela,ala,ola
+
+Nazwa definicji def_channel oznacza definicjê kana³u.
+
+Przyk³adowo:
+def_channel,PATH
+def_channel,NAME
+def_channel,UNIT
+def_channel,MIN
+def_channel,MAX
+def_channel,SYMBOL
+def_channel,WRITETODB
+
+Definicje kana³ów wymuszaj± sk³adnie pozosta³ych definicji.
+Je¿eli zdefiniujemy kana³y ch1, ch2, ch3, ch4, to definicje parametrów bêd±
+musia³y mieæ postaæ
+
+<warto¶æ1>,<warto¶c2>,<warto¶c3>,<warto¶æ4>
+
+W ten sposób zdefiniujemy parametr, który poszczególnym kana³om bêdzie mia³
+przypisane warto¶ci:
+
+ch1 - warto¶æ1
+....
+
+Definicje kana³ów wystêpuj± przed definicjami parametrów.
+Warto¶æ mo¿e wystêpowaæ w apostrofach - w celu wyspecyfikowania np.
+przecinka.
+
+Zatem przyk³adowy plik konfiguracyjny sterownika wygl±da tak:
+
+def_channel,PATH
+def_channel,NAME
+def_channel,UNIT
+def_channel,MIN
+def_channel,MAX
+def_channel,SYMBOL
+def_channel,WRITETODB
+Odgazowywacz:Twyj,Temperatura wyj¶ciowa odgazowywacza,st. C,0,100,Twyj,0
+Odgazowywacz:Twej,"Temperatura wej¶ciowa odgazowywacza 1,2",st. C,0,100,Twej,1
+
+Sk³adnia pliku konfiguracyjnego dla programu flex
+-------------------------------------------------
+
+%s DEF_QUOTED_ID
+
+ID			[?!:.a-zA-Z0-9±æê³ñó¶¿¼¡ÆÊ£ÑÓ¦¯¬ ]+
+COMMA			","
+DEF_CHANNEL		"def_channel"
+COMMENT			"#"[^\n]*\n
+QUOTED_ID		([^\"^\n]*)
+
+	void DefItem(char*);
+
+	int is_initial = 1;
+	int define_channel = 0;
+
+%option NOYYWRAP
+
+%%
+
+{COMMENT}	;
+
+{COMMA}		; 
+
+{DEF_CHANNEL}	define_channel = 1;
+
+\"		{
+                 if (is_initial) {
+		  BEGIN(DEF_QUOTED_ID);
+                  is_initial = 0;
+                 } 
+                 else { 
+		  BEGIN(INITIAL);
+                  is_initial = 1; 
+                 };
+                }
+
+<DEF_QUOTED_ID>{QUOTED_ID}	DefItem(yytext);
+
+{ID}				DefItem(yytext);
+
+
+[ \t\n]+	;	
+
+.		printf("Unknown character: #%s#\n", yytext);
+	
+ 
+%%
+
+/* definicje i zmienne */
+
+#define MAX_CHANNELS 20
+#define MAX_PARAMS 200
+char *channels[MAX_CHANNELS];
+int channels_num = 0;
+int item_num = 0;
+
+typedef struct {
+	char *values[MAX_CHANNELS];
+} ParamRec;
+
+ParamRec params[MAX_PARAMS];
+int params_num = 0;
+
+void Fatal(char *s)
+{
+	fprintf(stderr, "%s\n", s);
+	exit(-1);
+}
+
+void DefItem(char *s)
+{
+ if (define_channel) {
+	printf("Channel %s\n", s);
+	define_channel = 0;
+	channels_num++;
+	channels[channels_num-1] = (char*) strdup(s);
+ }
+ else {
+	if (!channels_num) Fatal("No channels defined !");
+	printf("Adding item %d '%s' ", item_num, s);
+	printf("to channel %s (param %d)\n", channels[item_num %
+		channels_num], item_num/channels_num);
+	params[item_num/channels_num].values[item_num % channels_num] =
+		(char*) strdup(s);
+	item_num++;
+ }
+}
+
+/* main */
+
+main()
+{
+	yylex();
+}
+
+

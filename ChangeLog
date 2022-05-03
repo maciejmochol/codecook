@@ -1,0 +1,169 @@
+$Id: ChangeLog,v 1.30 2000/11/05 21:23:56 code Exp $
+
+18.10.1999
+	* Codecook/Szarp_NG na CVSie
+26.10.1999
+	* Jak zwykle wszyscy olewaja ChangeLoga
+27.10.1999
+	* code: reorganizacja katalogow, wrzucenie do jednego worka,
+		kosmetyka
+2.11.1999
+	* Vooyeck : integracja kodu Yoyo (26-28 X) i Codematica (27 X)
+5.11.1999
+	* Vooyeck : alserv REENTRANT (wreszcie), polaczenie protoloku 
+	  alserva z dynamicznym protokolem (czekam na mozliwosc grupowania
+	  wyrazen). Uwaga - w czasie testoow w czasie zamykania polaczenia
+	  codecook wywalil core'a - oczywiscie zaczynam szukac bledu.
+	* Vooyeck - porzadki w ./codecook/doc
+8.11.1999
+	* Vooyeck : mala kosmetyka
+8.11.1999
+	* jojo : zrobilem kilka poprawek w pluginach -> teraz 
+	  jest tylko jedna funkcja, ale za to trzeba deklarowac dwie klasy:
+	  klase plugina i klase uruchamiajaca plugina. To rozwiazanie (moim zdaniem)
+	  jest najbardziej elastyczne.
+10.11.1999
+	* Vooyeck : SORRY - wasze TODO, IDEAS itd usunalem z src i
+	  przegralem do doc, ale zapominalem cvs add. Jutro je dorzuce.
+	* Vooyeck : Dodalem jakas prosta kontrole nad watkami
+	  ( polecenie protokolu ADMIN LIST THREADS - moze i tymczasowo,
+	  ale ulatwia debuggowanie )
+13.11.1999
+	* jojo : drivery maja teraz dwa interface: pierwszy to program wykanywany 
+	w petli (np. zbieranie danych ze sterownika) - to jest w Handler()
+	drugi: zbior funkcji ktore mozna wykonywac: np. zapytanie o parametry, 
+	ustawienie czegos etc. do tego zrobilem specjalny interface zeby bylo 
+	blokowanie i nie doszlo np. do takiej sytuacji:
+	chce cos zrobic w driwerze 1, szukam go, znajduje [ktos go ususwa] wywoluje 
+	funkcje -> segfault!!
+
+06.12.1999
+	* code: wrzucilem CD_tree z aliasami, klase xml wujka, pozmienialem
+	troche plikow (manager juz nie jest klasa Codecook_Thread), dodalem
+	exceptions (zobacz ccerror.h), dodalem szkielet bazy danych, troche tekstow
+	do doc (m.in. projekt bazy danych). 
+
+09.12.1999
+	* code: poprawilem aliasy, dodalem komendy protokolu do drzewa, wrzucilem
+	troche do *.doc, ulepszylem obsluge SIGSEGV
+
+10.12.1999
+	* code: cdtree now REENTRANT
+
+11.12.1999 (wlasciwie to jeszcze ten sam dzien)
+	* code: dodalem interface do device'ow, na razie kod raczkuje ale
+	_DZIALA_ !!! Plugin SYSINFO przerobiony do nowej postaci, nowe
+	CD_Node_Device i CD_Node_Param, interface do parametrow w drzewie
+
+12.12.1999
+	* code: poprawilem nieco device'y, dodalem troche do thread.cc|h
+	dodalem wylapywanie exceptions przez terminale i device'y
+
+13.12.1999
+	* code: usuniêtych kilka bledow, klasa Room znowu sie chrzani
+	(deadlocki), kurde trzeba ja od nowa napisac. Poprawione metody
+	ShowChannels, w przypadku aliasow nie pokazywaly wirtualnych kanalow
+	* code: usunalem mnostwo deadlockow zwiazanych z kasowaniem
+	device'ow (k* ale te pluskwy sie mnoza)
+	chodzi kasowanie DEVICE'ow
+	* code: znowu thready. Teraz manager czeka az naprawde thread sie
+	zamknie. W przeciwnym wypadku moze wystapic pulapka kiedy skasujemy
+	device'a: zostanie wykonany jego destruktor w trakcie dzialania handlera.
+
+10.01.2000
+	* code: wykry³em nowe pluskwy. Doda³em obs³ugê PnP do sterownika
+	pratermu. Problem: jak z³apaæ exception, zrobic cos, a potem znowu
+	j± sthrowowac zeby miala ten sam typ ? Jest cos takiego jak typeof()
+	zdaje sie ?
+	* code: dobra mam. Znalazlem po paru godzinach wykrzykiwania przeklenstw.
+	* code: DZIALA PLUG AND PLAY !!! Tworzy wlasciwe wpisy w drzewie dla MOSCa
+	Klenia, a nie jakies g*, przydziela kana³y MAX, MIN, NAME, UNIT
+11.01.2000
+	* code: zmienily sie definicje w ccerror.h. Rozszerzylem nieco podstawow±
+	klasê b³êdu exc_Codecook - dodaj±c jej numerek.
+
+31.01.2000
+	* code: lepszy Makefile - automatycznie generuje "dependencies"
+	* code: zwirtualizowany system baz danych, nowe pliki - szablony
+
+1.02.2000
+	* Vooyeck: Nowe parsery do przechowywania drzewa na dysku, uzywam
+	flex++ i %pure_parser (bison), dzieki czemu parsowanie ma byc 
+	REENTRANT bez blokowania (okaze sie jak to chodzi)
+	Warningi przy kompilacji plikow fleksa mozna zignorowac - to jest BUG
+	we fleksie. Przykladowy plik configuracyjny to ./conf/tree.conf.
+	Pewne pliki wylecialy, pewne sie pojawily. Proponuje wywalic
+	poprzednia wersje szarp_NG.
+	* Vooyeck: troche zmienilem Makefile'e, teraz depediences sa robione
+	-MM -MG, dzieki czemu tworzone sa zaleznosci dla plikow generowanych
+	przez yacca.
+
+1.02.2000
+	* code:	Przerobilem nieco parsing library Vooyecka (dla kazdego
+	parsera nowe pliki postaci parser_NAME.[h|cc])
+	* code: Klasa Parser nie korzysta juz z ParserType, trzeba
+	zdefiniowac klase pochodna od Parser (jak CD_Parser), poza tym teraz
+	Load() jest metoda drzewa CD_Tree, a nie klasy Parser
+	* code: dzialaja aliasy z parserem. Hurra !!!
+	* code: zostal do uporzadkowania parser mathforms.
+
+02.02.2000
+	* code: drobne poprawki do pliku konfiguracyjnego
+
+08.02.2000
+	* code: dodalem nowy typ wezla do drzewa: Raport. 
+	* code: demonstracja raportu w pliku konfiguracyjnym.
+	* code: odkrylem kolejnego deadlocka - tym razem w Aliasach.
+	metoda Resolve() odwolywala sie do blokujacej metody GetNode() a nie
+	do nieblokujacej _GetNode()
+	* code: odkrylem sposob jak polozyc codecooka: wpisac "SCAN /" :-)
+
+31.03.2000
+	* Vooyeck : Math_Parser - nowa koncepcja, poprawienie polowy
+		porzedniego kodu.
+	* Vooyeck : Math_Parser - wersja pokazowo/testowa dziala (GETVAL).
+	* Vooyeck : Dwa Terminale : RunScript i Console.
+
+4.4.2000
+	* Vooyeck : Integracja mojego kodu (31.03) z kodem Code'a (08.02) 
+	* Vooyeck : Usuniêty BUG z teminala, dodane -rdynamic (kto to
+	kurna usunal??)
+
+8.4.2000
+	* Vooyeck : poprawiony BUG zwiazany ze string::data(), bug 
+	klasy CD_Address, poprawione pobieranie parametroow CFullPath.
+	* Vooyeck : Poprawiony SYSINFO_DEVICE: nie potrzebuje juz 
+	wkompilowanego sysctl, sprawdza dodatkowo ilosc procesoow w systemie.
+
+9.4.2000
+	* Vooyeck : wykrywanie cykli w Math_Parserze, prosty support
+	dla kanaloow UNIT, DATA_TYPE i PRECISION (ilosc cyfr po przecinku)
+	Mozna wiec powiedziec, ze Math_Parser DZIALA!!!
+
+15.4.2000
+	* Vooyeck : t="IDEAS QUESTIONS DONE TODO.txt"; cat $t > TODO; rm $t
+	* Vooyeck : doc do mathparsera w doc/cdtree.txt
+
+19.4.2000
+	* Code: poprawilem blad w "SCAN /" ;-)
+
+26.4.2000
+	* Code: big zmiany
+	- przepisany od nowa parser Vooyecka, teraz obsluguje wyrazenia
+	logiczne, warunki oraz stringi (obsluga roznych typow danych)
+	- typy danych dla kanalow (Channel moze byc teraz typu INT, DOUBLE,
+	STRING, w przygotowaniu BOOL)
+	- clean-up, wyrzucenie niepotrzebnego kodu z alarmserva, integracja
+	kodu vooyecka z obecnym codecookiem
+	- w przygotowaniu: skasowanie al_log.[c|h] (integracja z loggerem),
+	przerobienie sposobu ladowania CD_Nodes z parsera CD_Tree (ten
+	sposob co jest teraz suxx...)
+
+27.4.2000
+	* Code: komenda SET
+
+06.2000
+	* Pawel - new developer
+
+06.11.2000
+	* Pawel & Code - codecook XML protocol, codecook DTD 

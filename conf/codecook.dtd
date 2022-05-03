@@ -1,0 +1,331 @@
+<!--
+
+codecook.dtd
+
+This file defines codecook protocol (XML response formats)
+
+$Id: codecook.dtd,v 1.1 2000/11/05 21:23:56 code Exp $
+
+Authors: Pawel Palucha and Codematic
+
+-->
+
+
+
+
+<!--
+===========================
+Objects defined in codecook
+===========================
+
+This stuff is for allow to specify state of codecook node 
+in single XML form.
+
+All attributes of XML elements represent channels in each codecook node.
+
+Channel named "type" is included because it exists real channel TYPE in all NODES.
+Maybe in future this channel will be removed (because of using XML it got
+obsolete).
+
+All channels are of CDATA type. XML processor treats them as normal text,
+but user application has to retrieve channel type by SHOWCHANNELS command.
+-->
+
+<!-- EMPTY node -->
+
+<!ELEMENT empty EMPTY>
+<!ATTLIST empty
+	name	CDATA
+	type	CDATA>
+
+
+
+<!-- ROOT node -->
+
+<!ELEMENT root EMPTY>
+<!ATTLIST root
+	name		CDATA
+	type		CDATA
+	cdversion	CDATA>
+
+
+
+<!-- DEVICE node -->
+
+<!ELEMENT device EMPTY>
+<!ATTLIST device
+	name		CDATA
+	type		CDATA
+	device_name	CDATA>
+
+
+
+<!-- FORMULA node -->
+
+<!ELEMENT formula EMPTY>
+<!ATTLIST formula
+	name		CDATA
+	type		CDATA
+	data_type	CDATA
+	formula		CDATA
+	precision	CDATA
+	unit		CDATA
+	value		CDATA>
+
+
+
+<!-- CONSTANT node-->
+
+<!ELEMENT constant EMPTY>
+<!ATTLIST constant
+	name		CDATA
+	type		CDATA
+	data_type	CDATA
+	formula		CDATA
+	precision	CDATA
+	unit		CDATA
+	value		CDATA>
+
+
+
+<!-- PARAM node-->
+
+<!ELEMENT param EMPTY>
+<!ATTLIST param
+	name		CDATA
+	type		CDATA
+	device_name	CDATA
+	value		CDATA>
+
+
+<!-- ALIAS node-->
+
+<!ELEMENT alias EMPTY>
+<!ATTLIST alias
+	name		CDATA
+	type		CDATA
+	target		CDATA
+	target_type	CDATA>
+
+
+
+<!-- RAPORT node -->
+
+<!ELEMENT raport EMPTY>
+<!ATTLIST raport
+	name		CDATA
+	type		CDATA
+	raport_name	CDATA>
+
+
+
+<!--=======================
+Possible codecook responses 
+===========================-->
+
+<!ELEMENT codecook_response (unknown_command | (command, error | list_res |
+	showchannels_res | show_res | set_res | alias_res | scan_res |
+	device_list_working_res | device_list_registered_res | 
+	device_add_res | device_delete_res | device_register_res |
+	device_register_all_res | device_unregister_res |
+	device_unregister_all_res | device_reregister_res | 
+	device_reregister_all_res | admin_threads_res)) >
+	<!-- undefined: HELP, USER responses -->
+
+
+
+<!-- UNKNOWN COMMAND response 
+=============================-->
+
+<!ELEMENT unknown_command EMPTY>
+
+
+
+<!-- COMMAND element 
+====================-->
+
+<!ELEMENT command EMPTY>
+<!ATTLIST command
+	text		CDATA		#REQUIRED>
+
+
+
+<!-- RESULT element 
+====================-->
+
+<!ELEMENT result EMPTY>
+<!ATTLIST result
+	status		CDATA		#REQUIRED
+	description	CDATA		#REQUIRED>
+
+
+
+<!-- ERROR response 
+===================-->
+
+<!ELEMENT error EMPTY>
+<!ATTLIST error
+	message		CDATA		#REQUIRED
+	code		CDATA		#REQUIRED
+	exception	CDATA		#REQUIRED
+	method		CDATA		#REQUIRED>
+
+
+
+<!-- MESSAGE response 
+=====================-->
+
+<!ELEMENT message EMPTY>
+<!ATTLIST message
+	message		CDATA		#REQUIRED>
+
+
+
+<!-- LIST response 
+==================-->
+
+<!ELEMENT list_res (empty | device | formula | constant | param | alias | raport)+>
+
+
+
+<!-- SHOWCHANNELS response
+========================== -->
+
+<!ELEMENT channel EMPTY>
+<!ATTLIST channel
+	name		CDATA				#REQUIRED
+	type		(INT | DOUBLE | STRING)		#REQUIRED>
+
+<!ELEMENT showchannels_res (channel)+>
+<!ATTLIST showchannels_res
+	node		CDATA		#REQUIRED>
+
+
+
+<!-- SHOW response
+========================== 
+
+SHOW response may contain ALIAS element, which indicates, that pointed node
+is alias. Destination node (pointed by alias) follows ALIAS element.
+
+-->
+
+<!ELEMENT show_res (alias?, (empty | device | formula | constant | param | raport))>
+<!ATTLIST show_res
+	node		CDATA		#REQUIRED>
+
+
+
+<!-- SET response
+=================->
+
+<!ELEMENT set_res (result)>
+
+
+
+<!-- ALIAS response
+===================->
+
+<!ELEMENT alias_res (result)>
+
+
+
+<!-- SCAN response 
+==================
+
+Note that SCAN response can't return ALIAS node
+-->
+
+<!ELEMENT scan_res (empty | device | formula | constant | param | raport)+>
+
+
+<!-- THREAD element
+===================-->
+
+<!ELEMENT thread EMPTY>
+<!ATTLIST thread
+	name		CDATA		#REQUIRED
+	type		CDATA		#REQUIRED
+	id		CDATA		#REQUIRED
+	pid		CDATA		#REQUIRED>
+
+
+
+<-- DEVICE_LIST_WORKING_RES response
+====================================-->
+
+<!ELEMENT device_list_working_res (thread)*>
+
+
+
+<-- ADMIN_THREADS_RES response
+====================================-->
+
+<!ELEMENT admin_threads_res (thread)+>
+
+
+
+<-- DEVICE_ADD_RES response
+===========================-->
+
+<!ELEMENT device_add_res (result)>
+
+
+
+<-- DEVICE_DELETE_RES response
+==============================-->
+
+<!ELEMENT device_delete_res (result)>
+
+
+
+<-- DEVICE_REGISTER_RES response
+================================-->
+
+<!ELEMENT device_register_res (result)>
+
+
+
+<-- DEVICE_REREGISTER_RES response
+==================================-->
+
+<!ELEMENT device_reregister_res (result)>
+
+
+
+<-- DEVICE_REGISTER_ALL_RES response
+====================================-->
+
+<!ELEMENT device_register_all_res (result)>
+
+
+
+<-- DEVICE_REREGISTER_ALL_RES response
+======================================-->
+
+<!ELEMENT device_reregister_all_res (result)>
+
+
+
+<-- DEVICE_UNREGISTER_RES response
+==================================-->
+
+<!ELEMENT device_unregister_res (result)>
+
+
+
+<-- DEVICE_UNREGISTER_ALL_RES response
+======================================-->
+
+<!ELEMENT device_unregister_all_res (result)>
+
+
+
+<-- DEVICE_LIST_REGISTERED_RES response
+=======================================-->
+
+<!ELEMENT device_list_registered_res (device)*>
+
+
+
+<-- END OF CODECOOK DTD -->

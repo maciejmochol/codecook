@@ -1,0 +1,117 @@
+Codematic, 28.11.1999
+
+Zalo¿enia blokowania paramtable
+===============================
+
+Paramtable jest tablic± parametrów, ktore mo¿na zapisywaæ,
+odczytywaæ i dodawaæ.
+
+Dodawanie parametrów polega na tym, ¿e zostaje wywo³ana metoda klasy
+ParamTable, która zwraca indeks tablicy.
+
+Powstaje pytanie o kasowanie parametrów - pierwotna koncepcja zak³ada³a,
+¿e parametry zostaj± tylko dodane, a ka¿dy sterownik startowany jest na 
+pocz±tku dzia³ania serwera. Wtedy kasowanie parametrów nie by³oby potrzebne.
+W/g tej koncepcji by³a tylko centralna tablica parametrów - ka¿dy sterownik
+otrzymywa³ handle (indeks) do tej tablicy. U¶rednianie parametrów
+nastêpowa³o by w oparciu o tê tablicê.
+
+Teraz mo¿liwe sa pluginy, ich dynamiczne ladowanie i kasowanie. Kasowanie 
+parametrów sta³o siê potrzebne, ale tylko na poziomie ca³ego sterownika.
+Tzn. parametr jest kasowany tylko wtedy, kiedy kasowany jest ca³y sterownik
+(device). W zasadzie nie ma potrzeby, by by³a tylko jedna, centralna tablica
+parametrów. A zatem z ka¿dym sterownikiem zostanie zwi±zana oddzielna
+tablica parametrów, które nie mog± byæ kasowane. 
+
+U¶rednianie parametrów bêdzie siê opiera³o na konstrukcji CD-drzewa.
+
+
+1) Blokowanie indeksow tablicy:
+
+- zapisy do roznych indeksow tablicy nie sa wykluczajace sie
+- odczyty z roznych indeksow tablicy nie sa wykluczajace sie
+- odczyty z tego samego indeksu nie wykluczaja sie
+- zapisy do tego samego indeksu nie wykluczaja sie
+
+- zapisy/odczyty indeksow wykluczaja sie z dodawaniem do tablicy (moze byc realloc)
+- zapisy/odczyty indeksow nie wykluczaja sie z odczytywaniem countera
+- odczyt countera wyklucza sie z dodawaniem do tablicy
+
+Symbolicznie:
+
+Z - zapis
+O - odczyt
+C - counter
+A - adding
+! - wykluczanie
+= - nie wykluczanie
+
+Z ! A
+O ! A
+C ! A
+A ! A
+
+Z = C
+C = O
+O = Z
+Z = Z
+O = O
+C = C
+
+Z ostatnich 6-u zapisow mamy cykl, wynika stad ze dla grupy operacji Z,C,O -
+mamy jeden semafor (w grupie tej operacje sa nie wykluczajace) - G
+
+A zatem:
+
+G ! A
+A ! A
+G = G
+
+Odpowiada to modelowi Room - Reader && Writer
+
+G - reader
+A - writer
+
+Czyli:
+
+Z - zapis - READER
+O - odczyt - READER
+C - counter - READER
+A - dodawanie - WRITER
+
+2) Zalozenia czasowe
+
+zakladamy, ze:
+- zapisy/odczyty indeksow trwaja bardzo krotko
+- odczyt countera trwa krotko
+- dodawanie do tablicy trwa dlugo 
+- zapisow/odczytow jest bardzo duzo, nie oplaca sie zalozyc jednego semafora
+- zapisy/odczyty z jednego watka zazwyczaj nastepuja po sobie
+- dodawan do tablicy jest malo
+
+3) Model blokowania
+
+Z zalozen czasowych wynika, ze oplaca sie dodac jedna operacje:
+
+BeginRW()
+
+po ktorej mozna dokonywac zapisow i odczytow tablicy.
+
+Analogicznie 
+
+EndRW()
+
+po zakonczeniu zapisow i odczytow.
+
+BeginRW() wywoluje EnterReader()
+EndRW() wywoluje LeaveReader()
+Add() wywoluje EnterWriter(), LeaveWriter()
+GetCounter() wywoluje EnterReader(), LeaveReader()
+
+4) Drugi etap blokowania - semafory na poszczegolnych indeksach.
+
+Zapis i odczyt tego samego parametru wykluczaja sie, dlatego na kazdy
+parametr zostanie zalozony semafor. Wtedy Zapis i Odczyt beda operacjami
+atomowymi - kazdy zapis powoduje ustawienie czasu i daty modyfikacji -
+timestamp.
+

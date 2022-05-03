@@ -1,0 +1,285 @@
+cdtree.txt
+==========
+
+ Ten plik podzielono na rozdzialy:
+-----------------------------------
+
+1. Drzewo parametrów
+2. ¦cie¿ka
+3. Kana³y
+4. Standardowe nazwy kanalow 
+5. TYPE - typy wêz³ów
+6. Struktura fizyczna instalacji a drzewo
+7. Aliasy, mapowanie na strukturê logiczn±
+8. Przyk³ad
+9. Kana³y ¶rednich a us³ugi u¶redniania (TODO)
+10. Definiowanie wlasnych funkcji
+
+
+
+
+1. Drzewo parametrów
+---------------------
+
+Jest to dynamiczna struktura danych budowana w trakcie uruchamiania systemu,
+komunikacji ze sterownikami PLC, itp.
+Drzewo sk³ada siê z wêz³ów, które mog± posiadaæ listê kana³ów, oraz listê
+pod-wêz³ów. 
+
+Drzewo s³u¿y do przechowywania ró¿nych informacji, jak np. zdefiniowanych
+parametrach w systemie, albo o pod³±czonych sterownikach PLC, lub aktywnych
+alarmach.
+
+Do ka¿dego wêz³a mo¿na odwo³aæ siê za pomoc± ¶cie¿ki i wy¶wietliæ jego
+kana³y, albo podwêz³y.
+
+
+2. ¦cie¿ka
+-----------
+
+Parametry pouk³adane s± w strukturê drzewiast±, która zale¿y nie od
+struktury fizycznej (które parametry z jakich sterowników), ale od
+logicznej, np.
+
+<hostname>-
+ |
+ |-Ciep³ownia Suwa³ki
+    |
+    |-Odgazowywacz
+       |-TWyj
+       |-TWej
+    |
+    |-Kocio³1
+       |-Vruszt
+       |-Lwarst
+
+¦cie¿ka to s± cz³ony oddzielone dwukropkiem (:). Je¿eli chcemy by w nazwie
+cz³onu by³ dwukropek, zamykamy cz³on w apostrofy (").
+
+W ten sposób np. prêdko¶æ rusztu na kotle pierwszym bêdzie mia³a ¶cie¿kê:
+
+"code.praterm.com.pl":Ciep³ownia Suwa³ki:Kocio³1:Vruszt
+
+
+3. Kana³y
+----------
+
+Definicja kana³ów wziê³a siê st±d, ¿e wielko¶æ fizyczn± w systemie mo¿na
+opisaæ kilkoma zmiennymi: warto¶ci±, nazw±, jednostk±, itp.
+Parametr mo¿e charakteryzowaæ kilka sta³ych i kilka zmiennych. Sta³e mog±
+byæ np. jego nazwa, minimalny zakres, skrót. Zmienne to mog± byæ próbki
+(aktualne warto¶ci parametru), ¶rednie 10minutowe, godzinne, dobowe. Aby
+mieæ dostêp do tych danych zdefiniowane s± tzw. kana³y. Dziêki ¶cie¿ce
+parametru i nazwie kana³u mo¿emy dostaæ np. aktualn± warto¶æ parametru.
+
+Aby odwo³aæ siê do kana³u nale¿y podaæ scie¿kê po której nastêpuje przecinek
+i nazwa kana³u np.
+
+"code.praterm.com.pl":Ciep³ownia Suwa³ki:Kocio³1:Vruszt,UNIT
+
+
+4. Standardowe nazwy kanalow 
+-----------------------------
+
+TYPE - typ wêz³a
+NAME - pelna nazwa probki
+UNIT - jednostka wielkosci (na razie ciag znakoow)
+MIN - minimalna wartosc
+MAX - maksymalna wartosc
+SYMBOL - symbol probki
+VALUE - wartosc probki
+DATA_TYPE - typ danych (calkowite, rzeczywiste, boolowskie)
+PRECISION - 'precyzja' - ilosc miejsc po przecinku (dotyczy l. rzeczywistych)
+
+Te nazwy sa predefiniowane, to znaczy aplikacja kliencka ma prawo spodziewac
+sie, ze kanaly oznaczone w ten sposob oznaczaja wlasnie to. Niemniej jednak
+nie znaczy to, ze sterownik ma udostepniac wlasnie takie kanaly - zalezy to
+od implementacji sterownika.
+
+
+5. TYPE - typy wêz³ów
+----------------------
+
+Lista kana³ów wêz³a zale¿y od jego typu, czyli rodzaju opisywanej wielko¶ci
+lub danej. Ka¿dy wêze³ ma jednak kana³ TYPE.
+
+Wêze³ mo¿e byæ:
+
+- sterownikiem (TYPE=DEVICE)
+- próbk± (TYPE=PROBE)
+- aliasem (TYPE=ALIAS) - patrz dalej
+- alarmem (TYPE=ALARM) 
+- raportem (TYPE=RAPORT)
+- zbiorem wykresów (TYPE=DRAW)
+- formula (TYPE=FORMULA), oznaczajaca przewaznie jakas funkcje
+- stala (TYPE=CONSTANT),  mozna wpisac na stale  pewne paramerty
+- ....
+
+- innym zdefiniowanym w miarê rozwoju systemu. 
+
+Struktura drzewa mo¿e przechowywaæ nawet dane binarne (pliki).
+
+
+6. Struktura fizyczna instalacji a drzewo
+------------------------------------------
+
+Struktura fizyczna instalacji systemu na obiekcie przemys³owym wygl±da
+mniej wiêcej tak:
+
+Czujki (detektory wielko¶ci fizycznych) pod³±czone s± do sterowników PLC.
+Nastêpnie sterowniki PLC poprzez jak±¶ sieæ pod³±czone s± do jednego lub
+wiêcej komputerów.
+
+Nastêpnie operator systemu komputerowego definiuje sobie raporty, okna
+wykresów, itd odwo³uj±ce siê do danego parametru, którego warto¶æ
+"¶ci±gniêta" jest z danego sterownika.
+
+Codecook automatycznie tworzy tê czê¶æ drzewa która opisuje strukturê
+fizyczn±. Przeanalizujmy np. pod³±czenie wiatromierza do systemu codecook.
+Maj±c 5 sterowników PLC pod³±czamy go do 1-ego.
+
+-<hostname>-
+           |-PLC1-
+		 |-Prêdko¶æ wiatru
+		 |-Azymut
+           |-PLC2
+           |-...
+           |-PLC5
+
+Po skomunikowaniu siê z PLC codecook dowiedzia³ siê ¿e s± do niego
+pod³±czone 2 parametry i stworzy³ powy¿sze drzewo.
+
+
+7. Aliasy, mapowanie na strukturê logiczn±
+-------------------------------------------
+
+Jak ju¿ zosta³o wspomniane, parametry mog± byæ sta³e lub zmienne.
+Niektóre parametry sta³e nie s± generowane dynamicznie, i ta czê¶æ drzewa
+ktora je opisuje jest zapisana na dysk. Nale¿± do nich aliasy.
+
+Aliasy to s± wêz³y które wskazuj± na inne wêz³y. Idea przypomina linki
+symboliczne z Unixa. System mo¿e odczytaæ warto¶ci kana³ów innego wêz³a
+poprzez alias. Istniej± one po to, aby mo¿na by³o ³atwo mapowaæ sobie
+strukturê fizyczn± instalacji na logiczn±.
+
+
+8. Przyk³ad
+------------
+
+We¼my wiatromierz z poprzedniego paragrafu. U¿ytkownik definiuje sobie
+teraz szereg raportów, wykresów, schematów, formu³ raportów i innych
+prezentacji z udzia³em prêdko¶ci wiatru. 
+
+Podaje wiêc wszêdzie ¶cie¿kê
+
+<hostname>:PLC1:Prêdko¶æ wiatru
+
+Co teraz je¶li w wyniku zmiany wiatromierz zostanie prze³±czony do PLC5 ?
+Struktura fizyczna zmieni³a siê, ale logiczna nie (wiatromierz nadal jest
+pod³±czony do systemu).
+
+Gdyby nie by³o aliasów, u¿ytkownik we wszystkich prezentacjach musia³by
+zaktualizowaæ ¶cie¿kê.
+
+a tak, tworzy alias:
+
+-<hostname>-|
+             ....
+            |-Wiatr
+                  |-Prêdko¶æ wiatru -> <hostname>:PLC1:Prêdko¶æ wiatru
+
+i podaje wszêdzie
+
+<hostname>:Wiatr:Prêdko¶æ wiatru
+
+Po zmianie fizycznej struktury zmienia siê jedynie warto¶æ aliasu.
+
+
+Proces mapowania struktury fizycznej drzewa na logiczn± bêdzie móg³ odbywaæ
+siê automatycznie za pomoc± szablonów.
+
+
+9. Kana³y ¶rednich a us³ugi u¶redniania
+----------------------------------------
+
+Us³ugi u¶redniania polegaj± na tym, ze do ka¿dego wêz³a typu PROBE dodawany
+jest kana³ ¶redniej z jakiego¶ okresu czasu, np. ostatnie 10 sekund.
+
+
+10. Definiowanie w³asnych funkcji
+----------------------------------
+
+Codecook umo¿liwia definiowanie w³asnych funkcji. Funkcjami tymi mog± byæ
+zarówno formu³y, które umo¿liwiaj± operacje na wêz³ach drzewa, jak i alarmy,
+za pomoc± których informujemy u¿ytkownika zmianach stanu. 
+
+10.1. 
+Formu³y maj± na celu u³atwienie u¿ytkownikowi kontroli nad procesami, 
+którymi jest bezpo¶rednio zainteresowany. 
+
+Na przyk³ad maj±c do dyspozycji paramerty:
+	Ciep³ownia Suwa³ki:Kocio³:Odgazowywacz:TWej    
+oraz	Ciep³ownia Suwa³ki:Kocio³:Odgazowywacz:TWyj 
+
+Mo¿na tworzyæ w³asne wêz³y:
+
+    ró¿nica = Ciep³ownia Suwa³ki:Kocio³:Odgazowywacz:TWej - 
+		Ciep³ownia Suwa³ki:Kocio³:Odgazowywacz:TWyj ;
+		
+Oprócz prostych funkcji ( suma, ró¿nica, iloczyn, iloraz ), dostarczony
+jest zestaw funkcji matematycznych do operacji na wêz³ach:
+- '^' (potegowanie - np. 3 ^ 6, oznacza 3 do potêgi 6-stej), 
+- sqrt ( pierwiastek kwadratowy - inne rodzaje pierwiastków uzyskujemy za 
+  pomoc± operatora potêgowania, np. 16 ^ 0.25, pierwiastek czwartego stopnia)  
+- funkcje trygonometryczne: sin, cos, tg, ctg.
+- logarytmy: ln (log. naturalny) i log (dziesiêtny), za pomoc± których
+  mo¿na uzyskaæ logarytmy przy dowolnych podstawach.
+
+Skomplikowane wyra¿enie mog³oby wygl±daæ nastêpuj±co:
+
+   parametr = sqrt( sin(przep³ywno¶æ1) + cos(przep³ywno¶æ2) ^ 2)/
+       ((params:p1 - params:p2*17.3)*params:p3 );
+       
+      gdzie przep³ywano¶æ{1,2}, params:p{1,2,3}, s± zdefiowanymi
+      wcze¶niej wêz³ami w drzewie.
+      
+10.2.
+Alarmy definiuje siê przy pomocy relacji np.
+
+    Przegrzanie = Odgazowywacz:TWej > 95;
+    
+Je¿eli podany warunek jest spe³niony, codecook uruchamia zdefiniowane
+wcze¶niej procedury (w szczególno¶ci informuje u¿ytkownika o zaj¶ciu alarmu).
+
+W definiowaniu alarmów mo¿na stosowaæ nastêpuj±ce relacje:
+    '==' (równo¶æ), '!=' lub '<>' (nierówno¶æ),  '>', '<' (nierówno¶ci ostre),
+    '<=', '>=' (nierówno¶ci s³abe).
+    
+W definicji alarmów mo¿na stosowaæ wszystkie funkcje opisane 
+w rozdziale 10.1  - Formu³y.
+
+W pewnych przypadkach formu³y lub alarmy mog± zwróciæ warto¶ci nieokre¶lone.
+Najczêstrze przypadki:	
+    * umieszczenie w definicji formu³y warto¶ci nieistniej±cej w drzewie:
+      np.: Suma = Odgazowywacz:TWej + Odgzowywacz:Twyj; 
+      Prze pomy³kê wpisane 'Odgzowywacz' powodujê, ¿e 'Suma' ma warto¶æ 
+      nieokre¶lon± (bo co najmniej 1 argument ma tak± warto¶æ)
+      
+    * wykrycie cyklu: 
+      np.: Suma = Suma * 3;
+      'Suma' jest definiowana przez sam± siebie.
+
+Codecook wykrywa wiele zag³êbieñ b³êdów:
+
+	Wspó³cz = (Param + 10)/2;
+    	Param = Suma/3.14 + T;
+	Suma = Odgazowywacz:TWej + Odgzowywacz:Twyj; 
+	T = TWej*Wspó³cz;
+
+W tym przypadku ka¿da z warto¶ci ma warto¶æ nieokre¶lon± z powodu 
+wykrytego cyklu jak i z powodu b³êdu w definicji.
+     
+              
+
+   
+

@@ -1,0 +1,225 @@
+
+
+  This file has been written by Maledictvs (formerly Vooyeck) in 1999/2000.
+It contains the information HOWTO parse strings and files in Codecook
+project and HOWTO add some new features to existing code. The source files,
+headers, and this info is called: 
+
+			 Codecook Parsing Library
+			==========================
+
+				6-I-2000
+
+
+This file is divided into 5 sections:
+
+	* INTRODUCTION.
+	* FILES.
+	* USAGE.
+	* CLASS AND METHODS.
+	* HOWTO ADD YOUR OWN PARSER.
+
+
+ * INTRODUCTION.
+==================
+
+  For some time I had many problems using bison/flex and C-written parsers 
+in a huge C++ project. I was quite ugly to use global 
+functions in such a code. I met the other problem when I started with these
+parsers in multithread programming. Existing parsers were non reentrant 
+( they used global variables like yytext, and so on ). 
+You say : But there are %pure_parser directive in bison and yyFlexLexer class i
+in flex to do that. Yes, indeed, but they are NOT designed to work together. 
+So I started to design a versatile class what could give you a simple API, 
+hide all global flourishment ( unfortunately there are no objective versions 
+of yyparse() ) and make '%pure bison' and 'yyFlexLexer' work together . 
+I tried to make the class be reentrant and simple to modify ( e.g. to add 
+new features ). Parser Class is a solution of these needs.
+
+  Class 'Parser' can be used to parse strings and files in multithread 
+application. It is fully REENTRANT without using any semaphores and other 
+synhronization objects. It gives the simple way of running your own parsers 
+( especially made of bison/flex ) as well as Codecook native parsers. 
+
+
+ * FILES.
+===========
+
+	parsing.h 	- header file. Must be included when using 'Parser'
+	parsing.cc 	- source. This file Codecook is linked with.
+	grammar_cdtree.y, 
+	scanner_cdtree.l, 
+	grammar_mathforms.y,
+	scanner_mathforms.l - 	Codecook native parsers
+
+
+ * USAGE.
+===========
+
+You must have at least one Parser object. Then you run its methods to
+parse strings or files. Next you check the state of parser object and
+eventual errors. Simple session would look like:
+
+/* Short example of using Parse class */
+
+#include "parsing.h" 	// MUST be included
+#include "al_typy.h" 	// defines types returned by 'mathforms' parser
+			// MUST be included when using 'mathforms' Parser
+#include "iostream"
+
+main(){
+Parser lPar; 		// Parser object
+CConditionsList *lCcl; 	// class returned by ParseString() when using 
+			// 'mathforms' parser
+
+	if( (lCcl = (CConditionsList*) par.ParseString(mathforms, 
+			" 30 < 4.5*sin(78^7)/7" ) ) )
+	{
+		cout << "Success!\n";
+		delete lCcl; // returned dynamically allocated object
+	}
+	else 
+		cout << "Parse error in line :" << par.GetErrorLine() << endl;
+
+}
+
+'mathforms' is a type of a Codecook native parser declared in "parsing.h"
+and defined in scanner_mathforms.l & grammar_mathforms.y . 
+If ParseString() returns NULL, there is a parse error ( in other parsing 
+functions NULL always means an error but not always the parse one ).
+ParseString() returns void* (to make it universal) so we must cast the
+returned value.  " 30 < ... " is a string to parse. I think that You'll
+see "Success!" whan you compile, link and run it.
+
+
+  * CLASS AND METHODS.
+========================
+
+Class Parser uses enumerate types: 
+
+ParserState { ps_Undefined, ps_ParseError, ps_ParsedOK, ps_NoFileSetError,
+	      ps_CannotOpenError }; // It's used to determane the parser's
+				    // state after last operation
+ParserType { mathforms, cdtree };   // Parsers you choose to run. You may add 
+				    // your own parsers here. 
+
+
+Class Parser public methods come as follows:
+
+class Parser{
+public:
+	Parser(char*file_name=NULL);
+
+	void *ParseString(ParserType KindOfParser, char* pstring);
+	void *ParseString(ParserType KindOfParser, string pstring);
+	void *ParseFile(ParserType KindOfParser, char *pfile_name=NULL);
+
+	ParserState GetErrorState();
+	int GetErrorLine();
+
+	int LoadTree(CD_Tree *TreePtr, CAlarmList* al_list);
+
+};		
+
+
+  Parser::Parser(char*file_name=NULL);
+
+	This constructor creates a Parser object. You should give the 
+	'file_name' argument as a default file name when you'd like 
+	to parse a file.
+	You can parse strings even when file_name is specified.
+	This function sets parser State to ps_Undefined.	
+
+
+  void *Parser::ParseString(ParserType KindOfParser, char* pstring);
+  void *Parser::ParseString(ParserType KindOfParser, string pstring);
+
+	These functions parse a string using specified parser type 
+	(mathforms, cdtree, ..). In case of success a proper object
+	is returned and parser state set to ps_ParsedOK. Otherwise
+	NULL is returned and parser state set ps_ParseError;
+
+
+  void *Parser::ParseFile(ParserType KindOfParser, char *pfile_name=NULL);
+
+	These function parses a file using specified parser type 
+	(mathforms, cdtree, ..). In case of success a proper object
+	is returned and parser state set to ps_ParsedOK. Otherwise
+	NULL is returned. If file could be opened parser state is set to 
+	ps_ParseError, if file couldn't be opened parser state is set to
+	ps_CannotOpenError. If no file was set state is set to 
+	ps_NoFileSetError. 
+	If pfile_name is not set then file name given as an argument to
+	Parser::Parser() is used. When pfile_name is used then Parser
+	tries to parse this file. Default file name is not set to pfile_name.
+
+	
+  ParserState Parser::GetErrorState();
+
+	Returns actual parser state. 
+
+
+  int Parser::GetErrorLine();
+
+	Returns actual error line. It should be used when in ps_ParseError
+	state. Otherwise it may return not proper value.
+
+
+
+  * HOWTO ADD YOUR OWN PARSER TO CODECOOK PROJECT.
+=====================================================
+
+0) Read carefully this HOWTO, parsing.h and parsing.cc !
+
+1) parsing.h: 
+
+   * Add your fields to 'universal_YYSTYPE' union. Include your headers if 
+     needed. 
+   * Think out your unique prefix (used later by flex and bison), add
+     it to ParserType enum type. 
+   * Add your 'flex++ section' using your prefix. Compare with 
+     'cdtree' and 'mathforms' sections. If you want to know more about 
+     OO flex : man flex.
+   * Make inclusion of grammar_<your_prefix>.tab.h 
+   * Make your DONT_INCLUDE_<your_prefix>_FLEXLEXER_H section
+
+2) parsing.cc: 
+
+   * Modify Parser::ParseString() method.
+
+3) grammar_<your_prefix>.y: 
+
+   * Write this file down! Don't define %union (you should have done it 
+     in parsing.h - look at 1) ). 
+   * Keep your symbols unique (%token, %left, %right, ...). In this version
+     all .tab.h files are included together. Prefix should be 
+     proper way to do that. Look at grammar_cdtree.y, mathforms_cdtree.y
+     All token there have a prefix.
+   * Make inclusion of "parsing.h".
+   * Make declarations <your_prefix>_error(), <your_prefix>_lex().
+   * Make definitions:
+	 #define YYPARSE_PARAM <name_of_parameter_in_yyparse()> 
+	 #define YYLEX_PARAM <name_of_parameter_in_yylex()> 
+   * write int <your_prefix>_error(char *) { return -1; }
+
+4) scanner_<your_prefix>.l:
+
+   * Write the scanner down!
+   * Before including "parsing.h" define 
+	DONT_INCLUDE_<your_prefix>_FLEXLEXER_H section
+   * Write <your_prefix>_lex() function. Make it similar to mathforms
+     and cdtree functions.
+   * Define 5 options:
+	%option NOYYWRAP
+	%option c++
+	%option stack
+	%option yyclass="<your_prefix>_LexerClass"
+	%option prefix="<your_prefix>_"
+
+
+5) Makefile: 
+
+   * Add grammar_<your_prefix>.tab.h, grammar_<your_prefix>.tab.c dependecies.
+     Don't forget about '-p <your_prefix>_' passed to bison !
+     Lex depediencies are the same for every parser.
+   * Add grammar_<your_prefix>.tab.o, scanner_<your_prefix>.o to OBJ variable.

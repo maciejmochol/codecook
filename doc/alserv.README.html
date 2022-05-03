@@ -1,0 +1,153 @@
+<body>
+<i><h4 align=right>Vooyeck '99-07 (vooyeck@code..)</h4></i>
+<h2><center> Server Alarmow </center></h2><br>
+
+<h4>Protokol</h4>
+Server alarmow jest fragmentem wiekszego projektu, dlatego moze sie <br>
+wydawac troche poroniony, jezeli pracuje jako samodzielny program.<br>
+Nic na to nie poradze. Z serweram mozna sie komunikowac na dwa sposoby:<br>
+<ol><li>poprzez terminal lokalny. W ten sposob mamy mozliwosci admina serwera
+bo sami go uruchomilismy. Mozemy tworzyc pliki od zera, zapisywac, modyfikowac,
+niszczyc. Ten tryb jest uzywany do celow testowych.
+<li>terminal sieciowy. Jest to emulacja fragmentu protokolu CODECOOK.
+Wymaga zalogowania sie. Poszczegolni uzytkownicy maja (z zamysle miec) rozne 
+ograniczenia, nie kazdy bedzie adminem.
+</ol>
+<br>
+Polecenia protokolu CODECOOK sa pisane wielkimi literami. W serwerze alarmow
+mozna pisac polecenia dowolna (mieszana nawet)
+czcianka. Moze w przyszlosci to bedzie usuniete, na razie jednak wygodniej
+mi klepac polecenia piszac mala czcionka. Kazde polecenie powinno byc
+zakonczone znakiem '\r', '\n' lub para "\r\n". Serwer nie przyjmuje 
+laczonych polecen! Przyklad poprawnego polecenia:
+	<code>"ALARM SHOW NAMES\n"</code><br><br>
+<strong>Polecenia protokolu: oznaczenie (-) mowi, ze to polecenie 
+zostanie usuniete.</strong><br>
+<ul>
+<li>USER LOGIN 'user' 'password' 	-    loguj mnie jako 'user'<br>
+<br>
+<li>ALARM HELP	- 	wykaz mozliwych polecen i jak korzystac z helpa<br>
+<li>ALARM HELP 'polecenie'	-	szczegolowa pomoc na okreslony temat<br>
+<br>
+<li>ALARM SHOW NAMES 	-	nazwy wszystkich alarmow<br>
+<li>ALARM SHOW DESCR	-	nazwy wszystkich alarmow z opisem<br>
+<li>ALARM SHOW ON	-	nazwy wlaczonych alarmow<br>
+<li>ALARM SHOW OFF	-	nazwy wylaczonych alarmow<br>
+<li>ALARM SHOW FILE	-	pokazuje plik jaki bedzie wygenerowany (-)<br>
+<li>ALARM SHOW FILENAME	-	nazwa aktualnego pliku konfiguracyjnego (-)<br>
+<li>ALARM SHOW ALL	-	informacje dodatkowe o alarmach (-) <br>
+<li>ALARM SHOW DEBUG	-	wszystkie informacje o alarmach (-) <br>
+<br>
+<li>ALARM SAVE		-	zapisuje drzewo alarmow do aktualnego pliku (-)<br>
+<li>ALARM SAVE 'nazwa'	-	zapisuje drzewo alarmow do pliku 'nazwa' (-)<br>
+<br>
+<li>ALARM QUIT		-	zakonczenie pracy z serwerem bez zapisu  (-)<br>
+<li>ALARM WQUIT		- 	'quit' z zapisem zmian (-)<br>
+<br>
+<li>ALARM ADD 'nazwa'	-	dodaj nowy alarm o nazwie 'nazwa'<br>
+<li>ALARM ADD 'nazwa' {WARUNEK} - dodaj warunek do alarmu alarm<br>
+<li>ALARM ADD 'numer' {WARUNEK} - dodaj warunek do alarmu 'numer' <br>
+<br>
+<li>ALARM DEL 'numer'	-	usuwa alarm nr 'numer'
+<li>ALARM DEL 'nazwa'	-	usuwa alarm o nazwie 'nazwa'
+<li>ALARM DEL 'numer':'nr_war'-	usuwa z alarmu nr 'numer' warunek nr 'nr_war'<br>
+<li>ALARM DEL 'nazwa':'nr_war'-	usuwa z alarmu o nazwie 'nazwa' war. nr 'nr_war'<br>
+<br>
+<li>ALARM LOG		-	wykonaj log do logfile'a (-) <br>
+<li>ALARM LOG SAVE	-	wykonaj log do logfile'a (-) <br>
+<li>ALARM LOG SAVE 'nazwa'    -	wykonaj log do pliku 'nazwa' (-) <br>
+<li>ALARM LOG SETFILE 'nazwa' - ustawia plik logow na 'nazwe' (-) <br>
+<li>ALARM LOG SHOW 'nazwa'    - drukuje statystyke alarmu 'nazwa' <br>
+<li>ALARM LOG SHOWALL	-	drukuje CALA zawartosc log-pliku (-) <br>
+<li>ALARM LOG SHOWFILE	-	drukuje aktualna nazwe pliku log (-)<br>
+</ul>
+<br>
+  Niektore z tych polecen zostana zlikwidowane w pozniejszych wersjach
+(na przyklad ALARM LOG SAVE - logi beda prawdopodobie obslugiwne przez
+niezalezny watek, nikt nie bedzie tego robil recznie, a moze?), lecz
+w tym momencie jest to jedyny sposob komunikacji z serwerem i wymuszania
+jego pracy - serwer nic nie robi sam - w rzeczywistosci wiec jest kiepskim   
+serwerem). Logowanie sie nie jest jeszcze 'dobrym' logowaniem, poniewaz
+udostepnia kazdemu uzytkownikowi dostep do wszystkich alarmow i dostep do
+polecen, ktore sa zarezerwowane tylko dla admina. Nalezy miec na uwadze,
+ze niektore polecenia protokolu zostana zablokowane dla userow.<br>
+  W jakie sposob sie komunikowac z serwerem sieciowym? Otoz jest to serwer
+(na razie) iteracyjny, uruchamiany na porcie tcp (numer portu jest parametrem
+programu serwera). Mozna sie z nim laczyc za pomoca telneta. Prawidlowe 
+wykonanie polecenia nie powoduje wygenerowania zadnego komunikatu 
+(wedlug uniksowej zasady: 'No message is a good message'). Jezeli przy
+tworzeniu oprogramowania klienckiego okaze przydatne generowanie jakis 
+komunikatow (typu 200 OK), po prawidlowym wykonaniu polecenia, prosze dac 
+mi znac - zaproponuje jakas modyfikacje protokolow eftepa czy hateemela.<br><br>
+<h4>Plik konfiguracyjny</h4>
+Pliki konfiguracyjne sa czytane (i zachowywanie) w katalogu conf (domyslnym 
+plikiem jest 'conf/server.conf'). Mozna zmienic standarowy plik opcja '-f' 
+programu, mozna zrezygnowac z ladowania pliku opcja '-n' (w celu stworzenia
+pliku z poziomu serwera).<br>
+Generalnie plik zawiera definicje alarmow. Alarm w pliku to ciag znakow 
+rozmoczynajacy sie znakiem dolara ( $alarm1, $pozar, $Brak_Wody - to nazwy
+poprawnych alarmow ). Po nazwie alarmu wystepuje jego definicja, ktora
+zawarta jest miedzy nawiasami '{' i '}' ( najkrotsza mozliwa definicja alarmu 
+jest '$a {}' ). Przewaznie pomiedzy nawiasami sa jakies warunki, przy ktorych
+alarm jest wlaczany. Po warunkach pojawiaja sie asocjacje (sa to informacje 
+pomocnicze - na razie). Standardowa definicja alarmu wyglada nastepujaco:<br>
+<code><br>
+$MojAlarm{<br>
+	Kielce:HalaB:Kociol3:temp,PROBKI >= 100; # warunek nr 1<br>
+	sin( Kielce:HalaB:Reaktor1:term,PROBKI ) == 0; # warunek nr 2<br>
+<br>
+	@description = "To jest alarm, ktory pojawia sie czesto"; 
+		# asocjacja nr 1<br>
+	@user = "Mateusz"; # asocjacja nr 2<br>
+}<br>
+# koniec alarmu<br>
+</code><br>
+<br> Jak widac powyzej '#' jest znakiem komentarza (do konca linii).
+Asocjacja musi sie rozpoczynac znakiem '@'. Kazdy z warunkow powoduje 
+wlaczenie alarmu. Mozliwe sa warunki bardzo skomplikowane, wielokrotnie
+zlozone, funkcje logarytmiczne i trygonometryczne. Ustalana jest poprawna 
+kolejnosc dzialan.<br> 
+Zawsze jako pojedynczy token moze sie pojawic sciezka - konstrukcja typu:<br>
+Plock:Petrochemia:Wieza:Temp,PROBKI lub Kociol,HOUR (wazny jest ten przecinek).
+Sciezka nie jest interpretowana przy uruchamianiu serwera - jezeli pomylimy
+sie przy w nazwie, mozna to okreslic podgladajac wartosc sciezki ( ALARM SHOW
+DEBUG ). Wartosc IND (Indefinite - Nieokreslony), oznacza, ze z nasza sciezka
+cos jest nie tak. Specjalnym rodzajem sciezki jest ipc,'numer' - oznacza
+to ze probujemy sciagac dane z pamieci dzielonej.<br> 
+Jezeli chcemy z poziomu programu dodac jakis warunek do alarmu, robimy to
+za pomoca polecenia ALARM ADD. Przykladowe dodanie warunku wyglada 
+nastepujaco:
+<br><br> 
+	<code>ALARM ADD 3 { ipc,2 < -80 } 
+	# dodaj warunek do alarmu nr. 3
+<br><br></code>
+Usuwanie warunkow wyglada podobnie: ALARM DEL, przyklad:<br><br><code> ALARM DEL
+$Alarm40 # usun alarm o nazwie $Alarm40<br>ALARM DEL 80:3 # usun warunek 3-ci
+z alarmu 80-tego</code><br><br>
+Przykladowy plik konfiguracyjny mozna znalezc w projekcie conf/server.conf<br>
+
+<h4>Implementacja</h4>
+  Otoz serwer alarmow zostal napisany w C++ ( bardzo mile jest tworzenie
+drzew zaleznosci, warunkow i definicji w alarmach a takze matematyczne
+sprawdzanie wartosci wyrazen) - poza tym da sie jeszcze jakos zarzadzac
+przy 4000 linii kodu. Lecz juz pojawily sie pierwsze schody przy
+probie intergracji z istniejacym szarpem ( ANSI C ), wiec nalezy chyba 
+juz teraz ustalic jak piszemy i w jakim jezyku.<br>
+<strong>A teraz szczegoly:</strong>
+Najwazniejsza klasa (ktorej obiekt jest elementem globalnym) jest 
+class CListaAlarmow. Obiekt tej klasy ( listaAlarmow ), umozliwia nam
+wszystkie te funkcje, ktore zaimplementowalem w protokole (np. USER LOGIN
+'user' 'pass' z CODECOOKA ma swoj funkcyjny odpowiednik z tej klasie jako 
+listaAlarmow->login(user, password) ).  Wiec przy probie wykorzystania 
+kodu w innym projekcie nalezy przede wszystkim przyjrzec sie definicji 
+klasy CListaAlarmow w pliku typy.h.<br>
+Na twardo zakodowalem 4 userow ( ktorzy nie maja na razie zadnych ograniczen ).
+Sa to : jacek ( password: jacek ), placek ( placek ), wacek ( wacek ), gacek
+( gacek ). Nalezy sie zalogowac na jednego z nich zeby pracowac przez siec.
+Nie maja oni tez nic wspolnego z userami, ktorzy sa zdefiniowani wewnatrz 
+alarmow. <br>
+
+<br><i>WSZYSTKIE UWAGI, BUGI I NIEZGODNOSCI Z TA DOKUMENTACJA PROSZE PRZESYLAC
+na:<br><center><a href=mailto:vooyeck@praterm.com.pl>vooyeck@praterm.com.pl</a>
+</center></i><br>
+</body>

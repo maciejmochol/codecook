@@ -1,0 +1,84 @@
+wstep.txt
+=========
+
+1) Wprowadzenie
+
+System codecook jest wielowatkowa aplikacja, ktora zarzadza probkami
+pobieranymi ze sterownikow PLC, zapisuje je do bazy, i udostepnia
+poprzez protokol komunikacyjny (TCP/IP lub inny). System codecook jest 
+w pelni konfigurowalny zdalnie.
+
+Codecook bêdzie motorem systemu typu SCADA - wizualizacja i akwizycja danych
+z obiektow przemys³owych. Jego nowatorstwo polega na tym ¿e zak³ada ideê
+Plug And Play dla sterowników PLC. Implementacja systemu typu SCADA na
+rzeczywistym obiekcie przemys³owym nastrêcza wiele trudno¶ci ze wzglêdu na
+mnogo¶æ parametrów i uci±¿liwo¶æ ich konfigurowania. Dostêpne na rynku 
+systemy jak np. WizCON lub FixDynamics u³atwiaj± konfiguracjê ca³o¶ci
+poprzez obiektowo¶æ - budowniczy systemu wykorzystuje gotowe obiekty
+jak np. kocio³ albo pompa - ³±cz±c wej¶cia obiektów z rzeczywistymi
+sterownikami PLC np. Siemens Simatic albo GeFanuc.
+Idea SCADA/PnP idzie jeszcze dalej - zak³ada autokonfiguracjê systemu.
+Opiera siê na pomy¶le drzewa parametrów - dynamicznej strukturze danych
+która budowana jest podczas pod³±czania sterownika PLC - oraz szablonów
+- czyli bazy zdefiniowanych, gotowych obiektów.
+
+Podczas pod³±czenia sterownika PLC system doda do drzewa nowe ga³êzie, a
+potem poszuka w bazie szablonów czy nie ma czasem gotowego opisu obiektu.
+Je¶li jest - zostanie do systemu automatycznie zamapowana struktura logiczna,
+oraz dodane schematy, zestawy wykresów i alarmów.
+
+
+2) Architektura systemu
+
+Codecook podzielony jest na w±tki które realizuj± bloki funkcjonalne
+systemu, np. zapisy/odczyty bazy danych, wyliczanie ¶rednich, udostêpnianie
+danych do klientów, aktualizacjê alarmów w/g zadanych formu³.
+W±tki s± ³atwiejsze w implementacji ni¿ architektura wieloprocesowa, ze
+wzglêdu na prostotê mechanizmów komunikacji.
+
+Wiêcej informacji w odno¶niku 3'.
+
+3) Podstawowe us³ugi
+
+- komunikacja ze sterownikami PLC
+
+- "uk³adanie" danych ze sterowników w drzewo parametrów, "mapowanie" ich na
+jak±¶ strukturê logiczn±
+
+- generowanie alarmów w wypadku przekroczeñ zakresu albo innych awarii (np.
+notoryczne b³êdy palaczy)
+
+- zarz±dzanie drzewem parametrów i komunikacja z us³ugami katalogowymi np.
+LDAP.
+
+- zapis/odczyt bazy danych dostosowanej do idei PnP.
+
+- komunikacja z innymi serwerami - mo¿liwo¶æ rozproszenia sieci parametrów,
+ trasy (routing) parametrów.
+
+- zarz±dzanie baz± szablonów (w przygotowaniu)
+
+Odno¶niki:
+==========
+
+1) device_conf_not_pnp.txt
+	
+	Projekt pliku konfiguracyjnego sterownika PLC nie PnP.
+
+2) protocol.txt
+	
+	Projekt protoko³u Codecook - wymiana danych miêdzy klientem a
+	serwerem.
+
+
+3) threads.txt
+
+	Architektura wielow±tkowa systemu Codecook.
+
+4) cdtree.txt
+
+	Drzewo parametrów.
+
+5) szablony.txt - w przygotowaniu
+
+	Szablony.

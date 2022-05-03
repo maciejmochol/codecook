@@ -1,0 +1,11 @@
+class Driver {
+
+Driver() // podaje nazwe
+
+Register() 
+
+Load(class Driver& driver)
+
+handle AddParam;
+
+};

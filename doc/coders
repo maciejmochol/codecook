@@ -1,0 +1,33 @@
+codecook coders:
+I.
+Dodalem uzytkownikoow (user.h, user.cc). Na razie nie ma to zadnego 
+zastosowania, ale funkcje sa gotowe, czekaja na odpowidnio zaimplementowany
+protokol.
+Klasa User - zawiera pola: 'name', 'passwd', 'description', 'level'
+(to jest priorytet uzytkownika - jesli cos takiego bedzie).
+Mozna dodawac i usuwac uzytkownikoow (USER ADD, USER DEL), logowac sie
+(USER LOGIN <user> <pass>)  - co nie ma znaczenia, bo wszystkie komendy
+protokolu sa dostepne bez logowania, mozna zmieniac haslo (USER SETPASS).
+Wyswietlenie uzytkownikow : USER LIST.
+
+Nie doczekalem sie drzewa, wiec uzytkownicy sa przechowywani wraz z alarmami 
+w conf/server.conf. Po ostatnich przeroobkach mozna by tam zrzucic cala
+konfiguracje codecooka [co Wy na to?]. Aha - prosze nie testowac opcji 
+USER SETDESCR <user> <description> ani ALARM SETDESCR <alarm> <descr>, 
+dopooki nie ma mozliwosci grupowania wyrazen w protokole.
+
+Myslalem, ze kontekst uzytkownika bedzie zwiazany bezposrednio z terminalem.
+Protkool potrzebooje jednak znac ten kontekst, zeby poprzwnie wykonywac
+(lub nie wykonywac wcale) polecenia protokolu.
+
+Tym bardziej, ze (jak proponuje The Main Coder), kontekst ten bylby 
+sprawdzany w kazdym wezle protokolu i polecenie wykonywane lub nie,
+w zaleznosci od uprawnien uzytkownika 
+ <  moim pomyslem byl zestaw 
+    protokoloow, ktore dostawalby uzytkownik w chwili logowania sie, ale
+    1) niektore polecenia powodowaly by odpowiedz 'command not supp..',
+    zamiast 'you cannot use ..'
+    2) zestaw protokoloow mooglby sie stac niespoojny (protokoly nierozloczne)
+    - i mielibysmy 'protocol hazard'.
+ >	
+

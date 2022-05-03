@@ -1,0 +1,192 @@
+Projekt bazy danych
+===================
+
+Architektura bazy danych
+------------------------
+
+1)
+Podstawow± jednostk± w bazie danych jest dzieñ. Dzieñ jest to tablica
+próbek.
+
+2)
+Indeksami tej tablicy s± warto¶ci czasowe. Rozmiar tej tablicy zale¿y od
+najmniejszej jednostki dnia, w starym SZARPie najmniejsz± jednostk± by³o
+10 minut. Zale¿y to wiêc od najmniejszej ¶redniej, jak± chcemy trzymaæ w
+bazie danych. Rozmiar tej tablicy zale¿y równie¿ od typu danej.
+
+Nowy SZARP bêdzie umo¿liwia³ stosowanie mniejszych jednostek, np. 10
+sekund.
+
+Ostatnim indeksem w tablicy bêdzie ¶rednia parametru z ca³ego dnia.
+
+3) Dnie bêd± umieszczone w tabeli jednego parametru. Tabela bêdzie oddzielna
+dla ka¿dego roku i dla ka¿dego parametru. Dnie bêd± indeksowane dat±
+(miesi±cem i dniem).
+
+4) Baza bêdzie podzielona na katalogi. W ka¿dym katalogu bêd± znajdowa³y siê
+tabele odpowiednie dla parametru. Ich nazwy bêd± odpowiednie do roku, 
+np. par1999.db.
+
+5) Poniewa¿ de facto tabela bêdzie indeksowana stringami, zatem mo¿liwe s±
+specjalne rekordy nie bêd±ce dniami. Takim rekordem by³by rekord
+konfiguruj±cy, znajduj±cy siê w ka¿dej tabeli. W rekordzie tym by³yby:
+
+a) Wersja bazy danych
+b) Nazwa pliku tabeli
+c) ¦cie¿ka w drzewie
+d) Jednostka dnia
+e) Typ danej
+
+Te informacje, oprócz wa¿nego typu dnia, przydatne by³yby do odtworzenia
+struktury katalogowej bazy danych (na podstawie ¶cie¿ki).
+
+6) Jednostki dnia
+
+x - dlugo¶æ danej (np. dla INT - 2, LONG - 4)
+¦redni rozmiar tabeli (365+1) * D³ugo¶æ dnia
+
+Do podanych danych trzeba by doliczyæ strukturê indeksow± dla ka¿dej tabeli.
+(dla ka¿dego dnia nazwa * ilo¶æ dni (366))
+
+- 1s
+
+D³ugo¶æ dnia: 86400*x
+¦redni rozmiar tabeli: 31 622 400 * x (31M*x)
+¦redni rozmiar rocznej bazy dla 10 parametrów: 310M*x
+¦redni rozmiar rocznej bazy dla 1000 parametrów: 31G*x
+
+- 10s
+
+D³ugo¶æ dnia: 8640*x
+¦redni rozmiar tabeli: 3 162 240 * x (3M*x)
+¦redni rozmiar rocznej bazy dla 10 parametrów: 30M*x
+¦redni rozmiar rocznej bazy dla 1000 parametrów: 3G*x
+
+- 1min
+
+D³ugo¶æ dnia: 1440*x
+¦redni rozmiar tabeli: 527040 * x (500k*x)
+¦redni rozmiar rocznej bazy dla 10 parametrów: 5M*x
+¦redni rozmiar rocznej bazy dla 1000 parametrów: 500M*x
+
+- 10min (tak jak w starym SZARPie)
+
+D³ugo¶æ dnia: 144*x
+¦redni rozmiar tabeli: 52704 * x (50k*x)
+¦redni rozmiar rocznej bazy dla 10 parametrów: 500k*x
+¦redni rozmiar rocznej bazy dla 1000 parametrów: 50M*x
+
+- 1h
+D³ugo¶æ dnia: 24*x
+¦redni rozmiar tabeli: 8784 * x (10k*x)
+¦redni rozmiar rocznej bazy dla 10 parametrów: 100k*x
+¦redni rozmiar rocznej bazy dla 1000 parametrów: 10M*x
+
+7) ¦rednie dobowe, tygodniowe, roczne, sezonowe
+
+Poniewa¿ typowym zastosowaniem bêd± ¶rednie 10minutowe, 
+zatem ilo¶æ danych do przetworzenia dla jednego parametru
+przez rok to ok. 100k (100000 bajtów). Dla wspó³czesnej mocy
+obliczeniowej nie ma sensu implementowaæ dodatkowych próbek.
+
+8) Braki bazy danych.
+
+Mo¿e brakowaæ dni w tabeli, ale nie mo¿e brakowaæ godziny w dniu.
+Zatem je¶li zostanie odebrana chocia¿ jedna próbka, ca³y dzieñ zostanie
+zapisany do bazy.
+
+9) Wspó³praca z us³ugami u¶redniania
+
+Baza danych nie czyta z kana³ów VALUE. Zawsze czyta z kana³ów AVG.
+Kana³y 1s, 10s, 1min, 10min, 1h bêd± predefiniowane.
+
+Us³ugi bazy danych
+------------------
+
+1) Zdefiniowane standardowe alarmy (rozmiar wolumenu, b³±d bazy danych)
+
+2) Cache'owanie
+
+- liczenie z góry zdefiniowanych ¶rednich
+
+?) Liczenie ¶rednich w locie.
+
+Obs³uga bazy w systemie codecook bêdzie pozwala³a na stosowanie ró¿nych,
+dynamicznie definiowalnych ¶rednich - np. ¶rednich 30-o minutowych, albo
+14-o dniowych.
+
+¦rednie dziel± siê na dwa rodzaje:
+
+a) ¦rednie naddniowe
+
+¦rednie naddniowe mog± korzystaæ ze ¶redniej ka¿dego dnia. W ten sposób
+szybko mog± byæ policzone ¶rednie miesiêczne oraz roczne.
+
+b) ¦rednio poddniowe
+
+¦rednie poddniowe s± liczone bezpo¶rednio z danych w dniu. Liczy siê je wiêc
+du¿o wolniej.
+
+?) Porównanie z baz± danych SZARP 2.1
+
+a) Nowa baza bêdzie bardziej otwarta, poniewa¿ od SZBD potrzebne
+bêd± wy³±cznie funkcje dodawania i pobierania dnia z bazy (oraz mechanizmy
+katalogowania parametrów i tabel).
+
+b) Dziêki podzieleniu bazy na oddzielne czê¶ci dla ka¿dego parametru, ³atwe
+bêdzie jej administrowanie, przegl±danie off-line, itp.
+
+c) Struktura nowej bazy jest bardziej intuicyjna i ³atwiejsze bêdzie
+implementowanie narzêdzi do zarz±dzania ni±.
+
+d) Dostêp do danych bêdzie szybszy, poniewa¿ opiera siê na za³o¿eniu, ¿e
+jednocze¶nie u¿ytkownik bêdzie pragn±³ uzyskaæ informacje o 1-10
+parametrach. Danych do przetwarzania dla systemu o 1000 parametrów bêdzie
+100-1000 razy mniej.
+
+e) Dziêki liczeniu ¶rednich "w locie" bêdzie mo¿liwe uzyskanie dowolnego
+rodzaju ¶rednich (2-minutowe, 4-o miesiêczne, itp) - co poszerzy
+zastosowanie SZARPa do zastosowañ przemys³owych.
+
+f) Dziêki mechanizmowi PnP, automatycznych alarmów zwi±zanych z baz± danych
+baza bêdzie samokonfigurowalna i stworzy wiêksze mo¿liwo¶æi - np.
+informowania przez e-mail o awarii systemu.
+
+
+Abstrakcje, struktury danych
+----------------------------
+
+Baza danych codecook wykorzystuje zewnêtrzne mechanizmy:
+
+1) Mechanizm pobierania nazwy w³a¶ciwej tabeli maj±c dane:
+	- ¶cie¿kê
+	- rok
+
+2) Mechanizm pobierania/zapisywania dnia z tabeli maj±c dane:
+	- nazwê tabeli
+	- miesi±c
+	- dzieñ
+
+Pobieranie: wczytuje dzieñ, zwraca b³±d je¶li dnia nie ma.
+Zapisywanie: je¶li dnia nie ma, dodaje nowy dzieñ z tymi danymi.
+	je¶li jest - to zamienia jego zawarto¶æ na now±.
+
+3) Mechanizm pobierania konfiguracji danej tabeli maj±c:
+	- nazwê tabeli.
+
+Konfiguracja obejmuje:
+	- jednostkê dnia
+	- typ danej
+	- ¶cie¿kê
+	- wersjê
+
+Dodatkowo w samej tabeli powinna byæ zapamiêtana jej nazwa.
+
+
+Dzieñ stanowi strukturê danych binarnych, któr± SZBD siê nie interesuje.
+Struktura ta jest zale¿na od wersji.
+
+Przewiduje siê zaimplementowanie bazy wykorzystuj±c:
+	- Berkeley DB
+	- PostgreSQL
+

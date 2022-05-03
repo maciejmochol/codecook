@@ -1,0 +1,110 @@
+Watki w systemie codecook
+-------------------------
+
+Podzielenie systemu codecook na watki zorientowane jest na zapewnienie jego
+maksymalnej wydajnosci dzieki:
+
+- zrownolegleniu operacji i nie blokowaniu w ten sposob niezaleznych
+procesow
+- mozliwosci wykorzystania platform wieloprocesorowych
+
+Poniewaz jednak zaklada sie, ze protokol codecook jest jednobiezny
+(klient czeka na zakonczenie jednej operacji, aby wykonac druga), wydajnosc
+optymalizowana jest w kierunku wystepowania wielu klientow. Wykonanie
+poszczegolnych operacji moze byc zapewnione na dwa sposoby:
+
+- przeslaniu zlecenia (request) do innego watku i czekaniu na wynik jego
+dzialania
+- wykonaniu operacji samodzielnie, zapewniajac blokowanie miedzy-watkowe
+
+Poniewaz dla kazdego klienta uruchamiany jest watek Server, zaklada sie
+maksymalne obarczenie go dzialaniami - ten watek powinien robic jak
+najwiecej w systemie parcook.
+
+Pewne watki moga miec krotnosc N (wystepowac wielokrotnie), a pewne - 1
+(wystepuje tylko jeden taki watek w calym systemie). 
+
+Watki beda napisane tak, aby zajmowac jak najmniej czasu procesora - czyli
+nie mozna stosowac aktywnego oczekiwania. Watki beda budzone albo przez
+bufor zlecen, albo przez system - sleep(). Nie powinno sie tez stosowac
+ciaglych petli.
+
+
+1) Device
+
+Jest to watek urzadzenia. Jego zadaniem jest:
+
+- komunikacja z urzadzeniem
+- przydzielanie parametrow w tablicy parametrow
+- przydzielanie automatycznych nazw parametrom
+- ew. automatyczne tworzenie raportow, drzewa funkcjonalnego (mechanizm
+  szablonow)
+- wysylanie zlecen synchronizacji 
+	Sterownik Device powinien wysylac jak najmniejsza liczbe zlecen
+synchronizacji. Wysyla ja wtedy, kiedy zmienia sie wartosc danego parametru
+i powinno to byc zapisane w globalnej tablicy parametrow. Powinien wiec
+utworzyc sobie wlasne cache parametrow i po zaobserwowaniu jakiejs zmiany
+wysylac synchronize-request.
+
+Przy zbyt szybkim wysylaniu requestow synchronizacji, sterownik device
+"zapcha" system i bedzie "wisial" na semaforze bufora zlecen dla meanera.
+Dlatego Device bedzie mialo zaimplementowane cos w rodzaju krytycznego czasu
+miedzy zleceniami.
+
+Teraz widze to tak, ze po dogadaniu sie z urzadzeniami, przydzieleniu nazw i
+miejsca w tablicy parametrow i po calej inicjalizacji, bedzie dostepna
+funkcja Measuring, ktora:
+
+a) Poczeka na uruchomienie wszystkich sterownikow, itp. - czyli
+poczeka na ustawienie semafora StartMeasuring przez Managera.
+b) wysle np. 10000 zlecen synchronizacji dla wszystkich zdefiniowanych 
+parametrow i zmierzy sredni czas realizacji zlecenia
+c) stwierdzi czy jest zapewniony krytyczny czas realizacji
+
+Oczywiscie ta miara nic nie powie o pozostalych procesach w systemie,
+ktore moga ja zaklocic przez zajecie czasu procesora -  dopoki codecook nie 
+bedzie procesem czasu rzeczywistego.
+
+Krotnosc: N
+
+2) Meaner
+
+- zarzadza tablica parametrow
+- realizuje requesty synchronizacji od watkow
+- rozsyla requesty synchronizacji do innych watkow (np. do Controlera)
+- uslugi usredniania 
+
+Watek sterowany jest przez request synchronizacji, usrednia tablice dopiero
+wtedy, gdy sie cos zmienia. Wysyla tez wtedy request do innych watkow, np.
+Controlera.
+
+Krotnosc: 1
+
+3) Server
+
+- komunikuje sie z klientem za pomoca protokolu codecook za pomoca dowolnego 
+lacza komunikacyjnego. Moze to byc protokol TCP/IP lub lacze szeregowe.
+- jest uruchamiany oddzielnie dla kazdego klienta, powinien wiec moc wykonac
+jak najwieksza liczbe operacji - bez wysylania zlecen do innych watkow.
+
+Krotnosc: N
+
+4) NetManager
+
+- zarzadza uruchamianiem poszczegolnych Serverow - w przypadku nawiazania
+polaczenia, itp.
+
+
+5) Manager
+
+- zarzadza calym systemem
+- wczytuje i zapisuje konfiguracje systemu 
+- uruchamia watki: Meaner, Controler, Device, NetManager
+- odbiera zlecenia:
+ a) restartu
+ b) zmiany konfiguracji - sterownikow oraz tras routingu.
+ c) shutdownu
+
+6) Controler
+
+- zajmuje sie kontrola parametrow systemu.

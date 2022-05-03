@@ -1,0 +1,136 @@
+%{
+
+
+/* $Id: grammar_mathforms.y,v 1.5 2000/04/15 08:21:56 vooyeck Exp $ */
+
+#include <stdlib.h>
+#include <string.h>
+#include <iostream>
+
+#include "al_typy.h"
+#include "parser_mathforms.h"
+
+#define YYPARSE_PARAM PStruct
+#define YYLEX_PARAM PStruct
+
+%}
+
+%token mathforms_WYBOR
+%token mathforms_WYRAZENIE
+%token mathforms_NUM
+%token mathforms_SEMICOLON
+//%token COMMA
+//%token COLON
+%token mathforms_CHAR
+
+%token mathforms_IDENTIFIER
+%token mathforms_FULLPATH
+%token mathforms_TEXT
+
+%token mathforms_EQUAL
+%token mathforms_DIFFERENT
+%token mathforms_BIGGER
+%token mathforms_EBIGGER
+%token mathforms_SMALLER
+%token mathforms_ESMALLER
+
+%token mathforms_POW
+%token mathforms_FUN
+%token mathforms_NEG
+
+%token mathforms_RELACJA
+%token mathforms_ACT
+
+%token mathforms_OR
+%token mathforms_AND
+%token mathforms_DBL_QUOT
+
+%nonassoc mathforms_L_BRACE
+%nonassoc mathforms_R_BRACE
+
+%left mathforms_RELACJA
+%left '+' '-'
+%left '*' '/'
+%left mathforms_NEG
+%right '^'
+
+//%type <lwar>  	al_conditions 
+%type <war>   	condition
+%type <war1>  	al_conditions_and
+%type <expr>   	expressions
+%type <wyr>   	math_expression
+
+%type <mstring> mathforms_IDENTIFIER
+%type <mstring> mathforms_FULLPATH
+%type <mstring> mathforms_FUN
+%type <mstring> mathforms_TEXT
+%type <f> mathforms_NUM
+%type <i> mathforms_RELACJA
+%type <i> mathforms_ACT
+
+%pure_parser
+
+/* Grammar follows */
+%%
+
+program:
+	condition {
+		((mathforms_ParserStruct*)PStruct)->list = 
+			new CConditionList(); 
+		((mathforms_ParserStruct*)PStruct)->list->add($1); 
+		((mathforms_ParserStruct*)PStruct)->SetType(CCONDITION);
+	}
+	| al_conditions_and {
+		((mathforms_ParserStruct*)PStruct)->list->add($1); 
+		((mathforms_ParserStruct*)PStruct)->SetType(CCONDITION);
+			// wprowadzic nowy typ CCONDITION_AND..
+	}
+	| expressions {
+		((mathforms_ParserStruct*)PStruct)->list = 
+			new CExpressionList();
+		((mathforms_ParserStruct*)PStruct)->list->add($1); 
+		((mathforms_ParserStruct*)PStruct)->SetType(CEXPRESSION);
+	}
+;
+
+expression:
+	math_expression { $$ = $1; }
+	| '-' expressions %prec mathforms_NEG {
+		$$ = new CExpressionList('-', $2); }
+	| expressions '^' expressions { 
+		$$ = new CExpressionList($1, '^', $3); }
+	| mathforms_L_BRACE expressions mathforms_R_BRACE { 
+		$$ = $2; }
+	| expressions '*' expressions {
+		$$ = new CExpressionList($1, '*', $3); }
+	| expressions '/' expressions {
+		$$ = new CExpressionList($1, '/', $3); }
+	| expressions '+' expressions {
+		$$ = new CExpressionList($1, '+', $3); }
+	| expressions '-' expressions {
+		$$ = new CExpressionList($1, '-', $3); }
+	| expressions mathforms_RELACJA expressions { 
+		$$ = new CCondition( $1, $2, $3 ); 
+	// Tu powinna sie rowniez znalezc czesc o FULLPATH, 
+	// ale (co widac) powuje konflikt z math_expressionm
+	// wszystko wiec sie zakreci tam..
+	}
+;
+
+math_expression:
+	mathforms_NUM { $$ = new CExpression($1); }
+	| mathforms_FULLPATH { $$ = new CFullPath($1); free($1); }
+	| condition { $$ = new CExpression($1); }
+	| mathforms_FUN mathforms_L_BRACE expressions mathforms_R_BRACE { 
+		$$ = new CExpression( $1, $3 ); 
+		free($1);
+		}
+;
+
+%%
+
+/* End of grammar */
+
+int mathforms_error(char*p){
+	p=NULL; return -1;
+}

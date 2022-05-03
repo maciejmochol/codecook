@@ -1,1 +1,3 @@
 # codecook
+
+This is simple codecook SCADA system. More details will follow...
